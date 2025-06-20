@@ -1,0 +1,23 @@
+{
+  "name": "mindweb-web",
+  "version": "1.0.0",
+  "description": "MindWeb - Web Application for Knowledge Management",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "serve": "npx http-server -p 8080",
+    "dev": "npx live-server --port=8080"
+  },
+  "keywords": [
+    "knowledge-management",
+    "learning",
+    "web-app",
+    "vanilla-js"
+  ],
+  "author": "MindWeb Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  }
+}
