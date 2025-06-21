@@ -1,17 +1,25 @@
-# MindWeb - React Native App
+# MindWeb - Knowledge Management App
 
-This is the React Native version of MindWeb built with Expo Router and designed for mobile platforms.
+A React Native app built with Expo SDK 53 for creating and managing your personal knowledge web.
 
 ## Features
 
-- 📱 Native mobile experience with React Native
-- 🧠 Interactive knowledge web visualization
+- 🧠 Interactive knowledge nodes with drag-and-drop functionality
+- 🎯 AI-powered content generation (OpenAI integration)
+- 🎮 Interactive quizzes and knowledge testing
 - 📊 Progress tracking and gamification
-- 🎯 Achievement system
-- 💾 Local data persistence with AsyncStorage
-- 🎨 Beautiful animations with Reanimated
+- 🎨 Rich media attachments (images, documents)
+- 🌐 Visual knowledge web with connections
+- 📱 Cross-platform (iOS, Android, Web)
 
-## Getting Started
+## Prerequisites
+
+- Node.js >= 18.0.0
+- Expo CLI >= 6.0.0
+- iOS Simulator (for iOS development)
+- Android Studio/Emulator (for Android development)
+
+## Installation
 
 1. Install dependencies:
 ```bash
@@ -23,11 +31,12 @@ npm install
 npm run dev
 ```
 
-3. Open the app:
-   - **iOS Simulator**: Press `i` in the terminal
-   - **Android Emulator**: Press `a` in the terminal
-   - **Web**: Press `w` in the terminal
-   - **Physical Device**: Scan the QR code with Expo Go app
+3. Run on specific platforms:
+```bash
+npm run ios     # iOS Simulator
+npm run android # Android Emulator
+npm run web     # Web browser
+```
 
 ## Project Structure
 
@@ -37,41 +46,124 @@ mindweb-app/
 │   ├── (tabs)/            # Tab navigation
 │   │   ├── index.tsx      # Home/Mind Web screen
 │   │   ├── add.tsx        # Add Knowledge screen
+│   │   ├── play.tsx       # Quiz/Testing screen
 │   │   ├── progress.tsx   # Progress tracking
-│   │   └── profile.tsx    # User profile
+│   │   └── profile.tsx    # User profile & settings
 │   └── _layout.tsx        # Root layout
 ├── components/            # Reusable components
+│   ├── EnhancedKnowledgeWeb.tsx
+│   ├── DraggableNode.tsx
+│   ├── EnhancedNodeDetailModal.tsx
+│   └── ...
 ├── hooks/                 # Custom hooks
+│   └── useKnowledgeStore.ts
 ├── types/                 # TypeScript definitions
+│   └── knowledge.ts
 └── assets/               # Images and static assets
 ```
 
-## Key Technologies
+## Configuration
 
-- **Expo SDK 52** - React Native framework
-- **Expo Router 4** - File-based navigation
-- **React Native Reanimated** - Smooth animations
-- **AsyncStorage** - Local data persistence
-- **Lucide React Native** - Beautiful icons
-- **TypeScript** - Type safety
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+### SDK 53 Features
+
+This project uses Expo SDK 53 with the following key features:
+
+- **New Architecture**: Enabled for better performance
+- **Expo Router v4**: File-based navigation
+- **React Native 0.76**: Latest React Native version
+- **TypeScript**: Full type safety
+- **Metro Bundler**: Optimized bundling
+- **EAS Build**: Cloud-based builds
 
 ## Building for Production
 
 ### Development Build
 ```bash
-npx expo install --fix
-eas build --profile development --platform all
+npm run build:all
 ```
 
 ### Production Build
 ```bash
-eas build --profile production --platform all
+eas build --platform all --profile production
 ```
 
-## Platform Support
+### Submit to App Stores
+```bash
+npm run submit:ios
+npm run submit:android
+```
 
-- ✅ iOS
-- ✅ Android  
-- ✅ Web (limited features)
+## Testing
 
-Note: Some native features like haptic feedback are not available on web platform.
+Run tests:
+```bash
+npm test
+```
+
+Type checking:
+```bash
+npm run type-check
+```
+
+Linting:
+```bash
+npm run lint
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Metro bundler cache issues**:
+```bash
+npx expo start --clear
+```
+
+2. **Node modules issues**:
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+3. **iOS build issues**:
+```bash
+cd ios && pod install && cd ..
+```
+
+4. **Android build issues**:
+```bash
+cd android && ./gradlew clean && cd ..
+```
+
+### SDK 53 Specific
+
+- Ensure Node.js version is >= 18.0.0
+- Clear Metro cache if experiencing bundling issues
+- Update Expo CLI to latest version: `npm install -g @expo/cli@latest`
+
+## Performance Optimization
+
+- Uses React Native Reanimated for smooth animations
+- Implements lazy loading for large knowledge webs
+- Optimized image handling with Expo Image Picker
+- Efficient state management with custom hooks
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
