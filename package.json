@@ -1,0 +1,23 @@
+{
+  "name": "mindweb-knowledge-app",
+  "version": "1.0.0",
+  "description": "MindWeb - Web Application for Knowledge Management",
+  "main": "mindweb-web/index.html",
+  "scripts": {
+    "start": "cd mindweb-web && npm start",
+    "dev": "cd mindweb-web && npm run dev",
+    "serve": "cd mindweb-web && npm run serve"
+  },
+  "keywords": [
+    "knowledge-management",
+    "learning",
+    "web-app",
+    "vanilla-js",
+    "ai-integration"
+  ],
+  "author": "MindWeb Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

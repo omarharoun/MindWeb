@@ -1,4 +1,4 @@
-# MindWeb - Enhanced Knowledge Management Web App
+# MindWeb - Knowledge Management Web App
 
 A powerful web application for creating and managing your personal knowledge web with AI integration and interactive learning features.
 
@@ -6,8 +6,7 @@ A powerful web application for creating and managing your personal knowledge web
 
 ### Core Knowledge Management
 - **Interactive Knowledge Nodes**: Create, edit, and organize knowledge with rich content
-- **Drag & Drop Interface**: Freely move and position nodes in your knowledge web
-- **Visual Connections**: See relationships between different pieces of knowledge
+- **Visual Knowledge Web**: See relationships between different pieces of knowledge
 - **Category System**: Organize knowledge by subject areas (Science, Technology, Philosophy, etc.)
 - **Tagging System**: Add tags for better organization and searchability
 - **Color Customization**: Personalize nodes with custom colors
@@ -37,7 +36,6 @@ A powerful web application for creating and managing your personal knowledge web
 - **Modern UI Design**: Beautiful, responsive interface with smooth animations
 - **Dark Theme**: Eye-friendly dark mode design
 - **Mobile Responsive**: Works seamlessly on all device sizes
-- **Drag & Drop**: Intuitive node positioning with visual feedback
 - **Modal Editing**: Rich editing experience with inline AI assistance
 - **Settings Management**: Comprehensive settings for AI and app preferences
 
@@ -58,8 +56,13 @@ A powerful web application for creating and managing your personal knowledge web
 
 ### Installation
 1. Clone or download the repository
-2. Open `index.html` in your web browser
-3. Start adding knowledge nodes to build your web
+2. Navigate to the `mindweb-web` directory
+3. Open `index.html` in your web browser, or
+4. Start a local server:
+   ```bash
+   cd mindweb-web
+   npm start
+   ```
 
 ### Setting Up AI Features
 1. Get an OpenAI API key from [OpenAI Platform](https://platform.openai.com/)
@@ -86,11 +89,10 @@ A powerful web application for creating and managing your personal knowledge web
 6. Try again to improve your scores
 
 ### Managing Your Knowledge Web
-- **Drag nodes** to reposition them in the web
 - **Click nodes** to view detailed information
 - **Edit nodes** using the modal interface
-- **Connect related nodes** (feature coming soon)
 - **Search and filter** your knowledge base
+- **Connect related nodes** (feature coming soon)
 
 ### Tracking Progress
 - View your level and experience points
@@ -166,7 +168,6 @@ Planned features for future releases:
 - **Advanced Search**: Full-text search across all content
 - **Import Sources**: Import from PDFs, articles, and books
 - **Spaced Repetition**: Intelligent review scheduling
-- **Mobile App**: Native mobile applications
 - **Cloud Sync**: Synchronize data across devices
 
 ## 🤝 Contributing
