@@ -6,7 +6,8 @@
   "scripts": {
     "start": "cd mindweb-web && npm start",
     "dev": "cd mindweb-web && npm run dev",
-    "serve": "cd mindweb-web && npm run serve"
+    "serve": "cd mindweb-web && npm run serve",
+    "install-deps": "cd mindweb-web && npm install"
   },
   "keywords": [
     "knowledge-management",
