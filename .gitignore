@@ -94,3 +94,5 @@ web-build/
 
 # Bolt specific
 .bolt/
+# Local Netlify folder
+.netlify
