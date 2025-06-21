@@ -3,11 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindWeb - Knowledge Management</title>
+    <title>MindWeb - AI-Powered Knowledge Management</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #8b5cf6;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-quaternary: #475569;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #e2e8f0;
+            --text-tertiary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-disabled: #64748b;
+            
+            --border-color: #334155;
+            --border-light: #475569;
+            --border-focus: #3b82f6;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            --blur-sm: blur(4px);
+            --blur-md: blur(8px);
+            --blur-lg: blur(16px);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #e2e8f0;
+            --bg-quaternary: #cbd5e1;
+            
+            --text-primary: #0f172a;
+            --text-secondary: #1e293b;
+            --text-tertiary: #334155;
+            --text-muted: #64748b;
+            --text-disabled: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --border-light: #cbd5e1;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,31 +81,54 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
+            transition: all var(--transition-normal);
         }
 
         .app {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--blur-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
         }
 
         /* Navigation */
         .nav-tabs {
             display: flex;
             background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(51, 65, 85, 0.5);
+            backdrop-filter: var(--blur-lg);
+            border-top: 1px solid var(--border-color);
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            padding: 8px;
-            gap: 4px;
+            padding: var(--spacing-sm);
+            gap: var(--spacing-xs);
             box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -49,16 +137,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 12px 8px;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-md) var(--spacing-sm);
             background: none;
             border: none;
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 12px;
             font-weight: 500;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--transition-normal);
             position: relative;
             overflow: hidden;
         }
@@ -72,7 +160,7 @@
             bottom: 0;
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition-normal);
         }
 
         .nav-tab:hover::before {
@@ -80,22 +168,33 @@
         }
 
         .nav-tab:hover {
-            color: #94a3b8;
+            color: var(--text-tertiary);
             transform: translateY(-2px);
         }
 
         .nav-tab.active {
-            color: #60a5fa;
+            color: var(--primary-color);
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.1));
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
         }
 
         .nav-tab svg {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--transition-normal);
         }
 
         .nav-tab:hover svg {
             transform: scale(1.1);
+        }
+
+        .nav-tab.play-tab {
+            background: linear-gradient(135deg, var(--accent-color), #059669);
+            color: white;
+            font-weight: 600;
+        }
+
+        .nav-tab.play-tab:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
 
         /* Tab Content */
@@ -124,53 +223,77 @@
 
         /* Header */
         .header {
-            padding: 20px;
+            padding: var(--spacing-lg);
             padding-top: 60px;
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            backdrop-filter: var(--blur-lg);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.05), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
         }
 
         .header h1 {
             font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-tertiary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 8px;
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+            z-index: 1;
         }
 
         .header p {
             font-size: 16px;
-            color: #94a3b8;
+            color: var(--text-muted);
             line-height: 1.6;
+            position: relative;
+            z-index: 1;
         }
 
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-md);
+            position: relative;
+            z-index: 1;
         }
 
         .welcome-text {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            background: linear-gradient(135deg, var(--text-primary), var(--text-tertiary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 4px;
+            margin-bottom: var(--spacing-xs);
         }
 
         .stats-text {
             font-size: 14px;
-            color: #94a3b8;
+            color: var(--text-muted);
         }
 
         .add-button {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             width: 56px;
             height: 56px;
             border-radius: 28px;
@@ -181,7 +304,7 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--transition-normal);
             position: relative;
             overflow: hidden;
         }
@@ -195,7 +318,7 @@
             bottom: 0;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition-normal);
         }
 
         .add-button:hover::before {
@@ -209,30 +332,30 @@
 
         .header-actions {
             display: flex;
-            gap: 12px;
+            gap: var(--spacing-md);
         }
 
         .action-button {
-            background: rgba(51, 65, 85, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            color: #94a3b8;
+            background: var(--bg-tertiary);
+            backdrop-filter: var(--blur-md);
+            padding: var(--spacing-md) var(--spacing-md);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--transition-normal);
         }
 
         .action-button:hover {
-            background: rgba(71, 85, 105, 0.8);
-            color: #cbd5e1;
+            background: var(--bg-quaternary);
+            color: var(--text-tertiary);
             transform: translateY(-2px);
         }
 
         /* Content */
         .content {
             flex: 1;
-            padding: 20px;
+            padding: var(--spacing-lg);
             overflow-y: auto;
         }
 
@@ -241,10 +364,10 @@
             flex: 1;
             position: relative;
             overflow: hidden;
-            border-radius: 20px;
+            border-radius: var(--radius-xl);
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(51, 65, 85, 0.3);
+            backdrop-filter: var(--blur-lg);
+            border: 1px solid var(--border-color);
         }
 
         .empty-state {
@@ -260,16 +383,16 @@
         .empty-state h2 {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            background: linear-gradient(135deg, var(--text-primary), var(--text-tertiary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-md);
         }
 
         .empty-state p {
             font-size: 18px;
-            color: #94a3b8;
+            color: var(--text-muted);
             line-height: 1.6;
             max-width: 500px;
         }
@@ -279,20 +402,20 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            padding: 20px;
+            padding: var(--spacing-lg);
         }
 
         .knowledge-node {
             position: absolute;
             width: 140px;
             min-height: 100px;
-            padding: 16px;
-            border-radius: 16px;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
             border: 2px solid;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all var(--transition-normal);
+            backdrop-filter: var(--blur-lg);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
             position: relative;
         }
@@ -306,7 +429,7 @@
             bottom: 0;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition-normal);
         }
 
         .knowledge-node:hover::before {
@@ -321,7 +444,7 @@
         .node-title {
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: var(--spacing-sm);
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -331,7 +454,7 @@
 
         .node-category {
             font-size: 11px;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -339,7 +462,7 @@
 
         .node-tags {
             font-size: 10px;
-            color: #64748b;
+            color: var(--text-disabled);
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
@@ -350,52 +473,54 @@
         .knowledge-form {
             max-width: 700px;
             margin: 0 auto;
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(51, 65, 85, 0.3);
+            background: var(--bg-secondary);
+            backdrop-filter: var(--blur-lg);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-xl);
         }
 
         .form-section {
             margin-bottom: 28px;
+            position: relative;
         }
 
         .form-section label {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: var(--spacing-sm);
             font-size: 16px;
             font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 12px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
         }
 
         .form-section label svg {
-            color: #94a3b8;
+            color: var(--text-muted);
         }
 
         .form-section input,
         .form-section textarea {
             width: 100%;
-            background: rgba(51, 65, 85, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            border-radius: 12px;
-            padding: 16px;
+            background: var(--bg-tertiary);
+            backdrop-filter: var(--blur-md);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
             font-size: 16px;
-            color: #f8fafc;
+            color: var(--text-primary);
             font-family: inherit;
             resize: vertical;
-            transition: all 0.3s ease;
+            transition: all var(--transition-normal);
         }
 
         .form-section input:focus,
         .form-section textarea:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--border-focus);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-            background: rgba(51, 65, 85, 0.9);
+            background: var(--bg-quaternary);
         }
 
         .form-section textarea {
@@ -406,28 +531,86 @@
             min-height: 140px;
         }
 
+        /* AI Generate Button */
+        .ai-generate-section {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .ai-generate-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: all var(--transition-normal);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .ai-generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .ai-generate-btn:disabled {
+            background: var(--text-disabled);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .ai-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .ai-option-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-light);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .ai-option-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
         .categories-container {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 12px;
+            margin-top: var(--spacing-md);
         }
 
         .category-button {
             padding: 10px 18px;
             border-radius: 25px;
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            background: rgba(51, 65, 85, 0.6);
-            backdrop-filter: blur(10px);
-            color: #cbd5e1;
+            border: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+            backdrop-filter: var(--blur-md);
+            color: var(--text-tertiary);
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--transition-normal);
         }
 
         .category-button:hover {
-            background: rgba(71, 85, 105, 0.8);
+            background: var(--bg-quaternary);
             transform: translateY(-2px);
         }
 
@@ -440,11 +623,11 @@
 
         .save-button {
             width: 100%;
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--accent-color), #059669);
             color: white;
             border: none;
             padding: 18px;
-            border-radius: 16px;
+            border-radius: var(--radius-md);
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
@@ -452,8 +635,8 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: var(--spacing-lg);
+            transition: all var(--transition-normal);
             box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
             position: relative;
             overflow: hidden;
@@ -468,7 +651,7 @@
             bottom: 0;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition-normal);
         }
 
         .save-button:hover::before {
@@ -481,55 +664,298 @@
         }
 
         .save-button:disabled {
-            background: #64748b;
+            background: var(--text-disabled);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+
+        /* Practice/Testing Mode */
+        .practice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        .practice-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .practice-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .practice-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .difficulty-btn {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            min-width: 120px;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .difficulty-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .start-practice-btn {
+            background: linear-gradient(135deg, var(--accent-color), #059669);
+            color: white;
+            border: none;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-radius: var(--radius-md);
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            margin: 0 auto;
+            transition: all var(--transition-normal);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
+        }
+
+        .start-practice-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5);
+        }
+
+        .quiz-container {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .quiz-progress {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .quiz-timer {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--warning-color);
+        }
+
+        .question-card {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.5;
+        }
+
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .answer-option {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .answer-option:hover {
+            background: var(--bg-quaternary);
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .answer-option.selected {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .answer-option.correct {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .answer-option.incorrect {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .quiz-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--spacing-xl);
+        }
+
+        .quiz-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+
+        .quiz-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .quiz-btn:disabled {
+            background: var(--text-disabled);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quiz-results {
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+
+        .results-score {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .results-message {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
         }
 
         /* Progress Styles */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            gap: var(--spacing-lg);
             margin-bottom: 40px;
         }
 
         .progress-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 24px;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--blur-lg);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
             border-left: 4px solid;
-            border: 1px solid rgba(51, 65, 85, 0.3);
-            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-lg);
         }
 
         .progress-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-xl);
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-md);
         }
 
         .card-icon {
             width: 40px;
             height: 40px;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
+            margin-right: var(--spacing-md);
         }
 
         .card-title {
             font-size: 16px;
             font-weight: 500;
-            color: #cbd5e1;
+            color: var(--text-tertiary);
         }
 
         .card-value {
@@ -540,29 +966,30 @@
 
         .card-subtitle {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-disabled);
         }
 
         .section-title {
             font-size: 24px;
             font-weight: 700;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            background: linear-gradient(135deg, var(--text-primary), var(--text-tertiary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 20px;
+            margin-bottom: var(--spacing-lg);
         }
 
         .level-card,
         .categories-card,
         .achievements-card,
         .profile-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 24px;
-            border: 1px solid rgba(51, 65, 85, 0.3);
-            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--blur-lg);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+            margin-bottom: var(--spacing-lg);
+            box-shadow: var(--shadow-lg);
         }
 
         /* Modal */
@@ -574,7 +1001,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
+            backdrop-filter: var(--blur-sm);
             z-index: 2000;
             animation: modalFadeIn 0.3s ease;
         }
@@ -583,7 +1010,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: var(--spacing-lg);
         }
 
         @keyframes modalFadeIn {
@@ -596,17 +1023,18 @@
         }
 
         .modal-content {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--blur-lg);
+            border-radius: var(--radius-xl);
             width: 100%;
             max-width: 600px;
             max-height: 80vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(51, 65, 85, 0.5);
+            border: 1px solid var(--border-color);
             animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-xl);
         }
 
         @keyframes modalSlideUp {
@@ -620,15 +1048,144 @@
             }
         }
 
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .modal-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-btn:hover {
+            background: var(--bg-quaternary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* AI Settings Modal */
+        .ai-settings-modal .modal-content {
+            max-width: 500px;
+        }
+
+        .setting-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .setting-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .setting-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-tertiary);
+            transition: var(--transition-normal);
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition-normal);
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .api-key-input {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .header {
-                padding: 16px;
+                padding: var(--spacing-md);
                 padding-top: 50px;
             }
             
             .content {
-                padding: 16px;
+                padding: var(--spacing-md);
             }
             
             .stats-grid {
@@ -638,11 +1195,27 @@
             .knowledge-node {
                 width: 120px;
                 min-height: 80px;
-                padding: 12px;
+                padding: var(--spacing-md);
             }
             
             .knowledge-form {
-                padding: 20px;
+                padding: var(--spacing-lg);
+            }
+
+            .difficulty-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .quiz-header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                text-align: center;
+            }
+
+            .quiz-actions {
+                flex-direction: column;
+                gap: var(--spacing-md);
             }
         }
 
@@ -663,15 +1236,16 @@
 
         /* Success Animation */
         .success-message {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--success-color), #059669);
             color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            margin: 20px 0;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-lg) 0;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--spacing-md);
             animation: slideDown 0.5s ease;
+            box-shadow: var(--shadow-lg);
         }
 
         @keyframes slideDown {
@@ -684,13 +1258,68 @@
                 transform: translateY(0);
             }
         }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Focus styles for accessibility */
+        button:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --border-color: #ffffff;
+                --text-muted: #ffffff;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        </button>
+
         <!-- Navigation -->
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="home">
+        <nav class="nav-tabs" role="navigation" aria-label="Main navigation">
+            <button class="nav-tab active" data-tab="home" aria-label="Knowledge Web">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h5a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 14.5 2h-5Z"/>
                     <path d="M9 6h6"/>
@@ -699,20 +1328,27 @@
                 </svg>
                 Mind Web
             </button>
-            <button class="nav-tab" data-tab="add">
+            <button class="nav-tab" data-tab="add" aria-label="Add Knowledge">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14"/>
                     <path d="M12 5v14"/>
                 </svg>
                 Add Knowledge
             </button>
-            <button class="nav-tab" data-tab="progress">
+            <button class="nav-tab play-tab" data-tab="practice" aria-label="Practice and Test">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polygon points="10,8 16,12 10,16 10,8"/>
+                </svg>
+                Play & Test
+            </button>
+            <button class="nav-tab" data-tab="progress" aria-label="Progress">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
                 </svg>
                 Progress
             </button>
-            <button class="nav-tab" data-tab="profile">
+            <button class="nav-tab" data-tab="profile" aria-label="Profile">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
@@ -729,7 +1365,7 @@
                         <h1 class="welcome-text">Welcome back!</h1>
                         <p class="stats-text" id="header-stats">0 nodes • Level 1</p>
                     </div>
-                    <button class="add-button" id="quick-add-btn">
+                    <button class="add-button" id="quick-add-btn" aria-label="Quick add knowledge">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M5 12h14"/>
                             <path d="M12 5v14"/>
@@ -737,13 +1373,13 @@
                     </button>
                 </div>
                 <div class="header-actions">
-                    <button class="action-button">
+                    <button class="action-button" aria-label="Search">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
                             <path d="M21 21l-4.35-4.35"/>
                         </svg>
                     </button>
-                    <button class="action-button">
+                    <button class="action-button" aria-label="Filter">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
                         </svg>
@@ -765,7 +1401,7 @@
         <div id="add-tab" class="tab-content">
             <div class="header">
                 <h1>Add Knowledge</h1>
-                <p>Capture and connect new insights to your knowledge web</p>
+                <p>Capture and connect new insights to your knowledge web with AI assistance</p>
             </div>
             <div class="content">
                 <form id="add-knowledge-form" class="knowledge-form">
@@ -780,7 +1416,21 @@
                             </svg>
                             Title *
                         </label>
-                        <textarea id="title" placeholder="What did you learn?" required></textarea>
+                        <textarea id="title" placeholder="What did you learn?" required aria-describedby="title-help"></textarea>
+                        <div class="ai-generate-section">
+                            <button type="button" class="ai-generate-btn" id="ai-generate-title" aria-label="Generate title with AI">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                AI Generate
+                            </button>
+                            <div class="ai-options">
+                                <button type="button" class="ai-option-btn" data-prompt="creative-title">Creative Title</button>
+                                <button type="button" class="ai-option-btn" data-prompt="descriptive-title">Descriptive Title</button>
+                                <button type="button" class="ai-option-btn" data-prompt="question-title">Question Format</button>
+                            </div>
+                        </div>
+                        <div id="title-help" class="sr-only">Enter a title for your knowledge node</div>
                     </div>
                     
                     <div class="form-section">
@@ -793,7 +1443,21 @@
                             </svg>
                             Content *
                         </label>
-                        <textarea id="content" placeholder="Describe your insight in detail..." rows="6" required></textarea>
+                        <textarea id="content" placeholder="Describe your insight in detail..." rows="6" required aria-describedby="content-help"></textarea>
+                        <div class="ai-generate-section">
+                            <button type="button" class="ai-generate-btn" id="ai-generate-content" aria-label="Generate content with AI">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                AI Enhance
+                            </button>
+                            <div class="ai-options">
+                                <button type="button" class="ai-option-btn" data-prompt="expand-content">Expand Details</button>
+                                <button type="button" class="ai-option-btn" data-prompt="add-examples">Add Examples</button>
+                                <button type="button" class="ai-option-btn" data-prompt="suggest-connections">Suggest Connections</button>
+                            </div>
+                        </div>
+                        <div id="content-help" class="sr-only">Enter detailed content for your knowledge node</div>
                     </div>
                     
                     <div class="form-section">
@@ -803,7 +1467,7 @@
                             </svg>
                             Category
                         </label>
-                        <div class="categories-container" id="categories-container"></div>
+                        <div class="categories-container" id="categories-container" role="group" aria-label="Select category"></div>
                     </div>
                     
                     <div class="form-section">
@@ -814,7 +1478,16 @@
                             </svg>
                             Tags
                         </label>
-                        <input type="text" id="tags" placeholder="machine learning, AI, algorithms (comma separated)">
+                        <input type="text" id="tags" placeholder="machine learning, AI, algorithms (comma separated)" aria-describedby="tags-help">
+                        <div class="ai-generate-section">
+                            <button type="button" class="ai-generate-btn" id="ai-generate-tags" aria-label="Generate tags with AI">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                AI Suggest Tags
+                            </button>
+                        </div>
+                        <div id="tags-help" class="sr-only">Add comma-separated tags to categorize your knowledge</div>
                     </div>
                     
                     <div class="form-section">
@@ -825,7 +1498,8 @@
                             </svg>
                             Source
                         </label>
-                        <input type="text" id="source" placeholder="Book, article, video, or website (optional)">
+                        <input type="text" id="source" placeholder="Book, article, video, or website (optional)" aria-describedby="source-help">
+                        <div id="source-help" class="sr-only">Optional: Add the source of this knowledge</div>
                     </div>
                     
                     <button type="submit" class="save-button">
@@ -837,6 +1511,96 @@
                         Save to Knowledge Web
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Practice/Testing Tab -->
+        <div id="practice-tab" class="tab-content">
+            <div class="header">
+                <h1>Practice & Test</h1>
+                <p>Test your knowledge with AI-generated questions and track your progress</p>
+            </div>
+            <div class="content">
+                <div class="practice-container">
+                    <div class="practice-setup" id="practice-setup">
+                        <div class="practice-header">
+                            <h2 class="practice-title">Ready to Test Your Knowledge?</h2>
+                            <p class="practice-subtitle">Challenge yourself with questions generated from your knowledge web</p>
+                        </div>
+                        
+                        <div class="difficulty-selector">
+                            <button class="difficulty-btn active" data-difficulty="easy" aria-label="Easy difficulty">
+                                <div>Easy</div>
+                                <small>5 questions</small>
+                            </button>
+                            <button class="difficulty-btn" data-difficulty="medium" aria-label="Medium difficulty">
+                                <div>Medium</div>
+                                <small>10 questions</small>
+                            </button>
+                            <button class="difficulty-btn" data-difficulty="hard" aria-label="Hard difficulty">
+                                <div>Hard</div>
+                                <small>15 questions</small>
+                            </button>
+                        </div>
+                        
+                        <button class="start-practice-btn" id="start-practice" aria-label="Start practice quiz">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polygon points="10,8 16,12 10,16 10,8"/>
+                            </svg>
+                            Start Quiz
+                        </button>
+                    </div>
+                    
+                    <div class="quiz-container" id="quiz-container" style="display: none;">
+                        <div class="quiz-header">
+                            <div class="quiz-progress" id="quiz-progress">Question 1 of 5</div>
+                            <div class="quiz-timer" id="quiz-timer">05:00</div>
+                        </div>
+                        
+                        <div class="question-card" id="question-card">
+                            <div class="question-text" id="question-text">Loading question...</div>
+                            <div class="answer-options" id="answer-options"></div>
+                        </div>
+                        
+                        <div class="quiz-actions">
+                            <button class="quiz-btn" id="prev-question" disabled>Previous</button>
+                            <button class="quiz-btn" id="next-question" disabled>Next</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-results" id="quiz-results" style="display: none;">
+                        <div class="results-score" id="results-score">85%</div>
+                        <div class="results-message" id="results-message">Great job! You're making excellent progress.</div>
+                        
+                        <div class="results-stats" id="results-stats">
+                            <div class="stat-card">
+                                <div class="stat-value" id="correct-answers">4</div>
+                                <div class="stat-label">Correct</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-questions">5</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="time-taken">3:45</div>
+                                <div class="stat-label">Time</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="xp-earned">+50</div>
+                                <div class="stat-label">XP Earned</div>
+                            </div>
+                        </div>
+                        
+                        <button class="start-practice-btn" id="retry-quiz">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,4 23,10 17,10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            Try Again
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -868,26 +1632,71 @@
     </div>
 
     <!-- Node Detail Modal -->
-    <div id="node-modal" class="modal">
+    <div id="node-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
         <div class="modal-content">
             <div class="modal-header">
-                <button class="close-button" id="close-modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <h2 id="modal-title">Knowledge Node</h2>
+                <div class="modal-actions">
+                    <button class="modal-btn" id="edit-node" aria-label="Edit node">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    <button class="modal-btn" id="close-modal" aria-label="Close modal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="quiz-btn" id="delete-node" style="background: var(--error-color);">Delete Node</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="ai-settings-modal" class="modal ai-settings-modal" role="dialog" aria-labelledby="ai-settings-title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="ai-settings-title">AI Settings</h2>
+                <button class="modal-btn" id="close-ai-settings" aria-label="Close AI settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
-                <h2>Knowledge Node</h2>
-                <button class="edit-button" id="edit-node">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                </button>
             </div>
-            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <div class="setting-label">Enable AI Features</div>
+                    <div class="setting-description">Turn on AI-powered content generation and enhancement</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ai-enabled">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-group">
+                    <div class="setting-label">OpenAI API Key</div>
+                    <div class="setting-description">Enter your OpenAI API key to enable AI features</div>
+                    <input type="password" class="api-key-input" id="api-key" placeholder="sk-...">
+                </div>
+                
+                <div class="setting-group">
+                    <div class="setting-label">Auto-generate Tags</div>
+                    <div class="setting-description">Automatically suggest tags for new knowledge nodes</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-tags">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
             <div class="modal-footer">
-                <button class="delete-button" id="delete-node">Delete Node</button>
+                <button class="quiz-btn" id="save-ai-settings">Save Settings</button>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-// Knowledge Management App
+// Enhanced Knowledge Management App with AI Integration and Practice Mode
 class KnowledgeApp {
     constructor() {
         this.nodes = JSON.parse(localStorage.getItem('mindweb_nodes') || '[]');
@@ -7,7 +7,16 @@ class KnowledgeApp {
             totalConnections: 0,
             experiencePoints: 0,
             level: 1,
-            categories: {}
+            categories: {},
+            quizzesTaken: 0,
+            averageScore: 0,
+            totalTimeSpent: 0
+        }));
+        
+        this.aiSettings = JSON.parse(localStorage.getItem('mindweb_ai_settings') || JSON.stringify({
+            enabled: false,
+            apiKey: '',
+            autoTags: false
         }));
         
         this.categories = [
@@ -25,20 +34,60 @@ class KnowledgeApp {
         
         this.selectedCategory = this.categories[0].id;
         this.currentNode = null;
+        this.currentTheme = localStorage.getItem('mindweb_theme') || 'dark';
+        
+        // Quiz state
+        this.currentQuiz = null;
+        this.currentQuestionIndex = 0;
+        this.quizAnswers = [];
+        this.quizStartTime = null;
+        this.quizTimer = null;
+        this.selectedDifficulty = 'easy';
         
         this.init();
     }
     
     init() {
+        this.applyTheme();
         this.setupEventListeners();
         this.renderCategories();
         this.updateStats();
         this.renderKnowledgeWeb();
         this.renderProgress();
         this.renderProfile();
+        this.loadAISettings();
+    }
+    
+    applyTheme() {
+        document.documentElement.setAttribute('data-theme', this.currentTheme);
+        const themeIcon = document.querySelector('#theme-toggle svg');
+        if (this.currentTheme === 'light') {
+            themeIcon.innerHTML = `
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            `;
+        } else {
+            themeIcon.innerHTML = `
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            `;
+        }
     }
     
     setupEventListeners() {
+        // Theme toggle
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('mindweb_theme', this.currentTheme);
+            this.applyTheme();
+        });
+        
         // Tab navigation
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -58,6 +107,55 @@ class KnowledgeApp {
             this.addKnowledgeNode();
         });
         
+        // AI Generate buttons
+        document.getElementById('ai-generate-title').addEventListener('click', () => {
+            this.generateAIContent('title');
+        });
+        
+        document.getElementById('ai-generate-content').addEventListener('click', () => {
+            this.generateAIContent('content');
+        });
+        
+        document.getElementById('ai-generate-tags').addEventListener('click', () => {
+            this.generateAIContent('tags');
+        });
+        
+        // AI option buttons
+        document.querySelectorAll('.ai-option-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const prompt = e.target.dataset.prompt;
+                const section = e.target.closest('.form-section').querySelector('input, textarea');
+                this.generateAIContentWithPrompt(section.id, prompt);
+            });
+        });
+        
+        // Practice mode
+        document.getElementById('start-practice').addEventListener('click', () => {
+            this.startPracticeMode();
+        });
+        
+        document.getElementById('retry-quiz').addEventListener('click', () => {
+            this.resetPracticeMode();
+        });
+        
+        // Difficulty selection
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.selectedDifficulty = e.target.dataset.difficulty;
+            });
+        });
+        
+        // Quiz navigation
+        document.getElementById('next-question').addEventListener('click', () => {
+            this.nextQuestion();
+        });
+        
+        document.getElementById('prev-question').addEventListener('click', () => {
+            this.prevQuestion();
+        });
+        
         // Modal events
         document.getElementById('close-modal').addEventListener('click', () => {
             this.closeModal();
@@ -67,10 +165,33 @@ class KnowledgeApp {
             this.deleteNode();
         });
         
-        // Close modal on backdrop click
+        // AI Settings modal
+        document.getElementById('close-ai-settings').addEventListener('click', () => {
+            this.closeAISettings();
+        });
+        
+        document.getElementById('save-ai-settings').addEventListener('click', () => {
+            this.saveAISettings();
+        });
+        
+        // Close modals on backdrop click
         document.getElementById('node-modal').addEventListener('click', (e) => {
             if (e.target.id === 'node-modal') {
                 this.closeModal();
+            }
+        });
+        
+        document.getElementById('ai-settings-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'ai-settings-modal') {
+                this.closeAISettings();
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal();
+                this.closeAISettings();
             }
         });
     }
@@ -93,6 +214,8 @@ class KnowledgeApp {
             this.renderProgress();
         } else if (tabName === 'profile') {
             this.renderProfile();
+        } else if (tabName === 'practice') {
+            this.resetPracticeMode();
         }
     }
     
@@ -108,6 +231,7 @@ class KnowledgeApp {
             button.style.setProperty('--category-color', category.color);
             button.style.setProperty('--category-color-light', category.color + '30');
             button.style.setProperty('--category-shadow', category.color + '40');
+            button.setAttribute('aria-pressed', category.id === this.selectedCategory);
             
             if (category.id === this.selectedCategory) {
                 button.classList.add('active');
@@ -116,13 +240,148 @@ class KnowledgeApp {
             button.addEventListener('click', () => {
                 document.querySelectorAll('.category-button').forEach(btn => {
                     btn.classList.remove('active');
+                    btn.setAttribute('aria-pressed', 'false');
                 });
                 button.classList.add('active');
+                button.setAttribute('aria-pressed', 'true');
                 this.selectedCategory = category.id;
             });
             
             container.appendChild(button);
         });
+    }
+    
+    async generateAIContent(type) {
+        if (!this.aiSettings.enabled || !this.aiSettings.apiKey) {
+            this.showAISettings();
+            return;
+        }
+        
+        const button = document.getElementById(`ai-generate-${type}`);
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.innerHTML = '<div class="loading"></div> Generating...';
+        
+        try {
+            let prompt = '';
+            let currentContent = '';
+            
+            switch (type) {
+                case 'title':
+                    currentContent = document.getElementById('content').value;
+                    prompt = `Generate a concise, engaging title for this knowledge: "${currentContent}". Return only the title, no quotes or extra text.`;
+                    break;
+                case 'content':
+                    currentContent = document.getElementById('title').value;
+                    prompt = `Expand and enhance this knowledge topic: "${currentContent}". Provide detailed, educational content that explains the concept clearly. Include key points, examples, and practical applications.`;
+                    break;
+                case 'tags':
+                    const title = document.getElementById('title').value;
+                    const content = document.getElementById('content').value;
+                    prompt = `Generate relevant tags for this knowledge: Title: "${title}", Content: "${content}". Return 3-5 tags separated by commas, no extra text.`;
+                    break;
+            }
+            
+            const response = await this.callOpenAI(prompt);
+            
+            if (response) {
+                const targetElement = document.getElementById(type);
+                if (type === 'tags') {
+                    targetElement.value = response.trim();
+                } else {
+                    targetElement.value = response.trim();
+                    targetElement.style.height = 'auto';
+                    targetElement.style.height = targetElement.scrollHeight + 'px';
+                }
+                
+                this.showMessage(`AI generated ${type} successfully!`, 'success');
+            }
+        } catch (error) {
+            console.error('AI generation error:', error);
+            this.showMessage('Failed to generate content. Please check your API key.', 'error');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+    
+    async generateAIContentWithPrompt(fieldId, promptType) {
+        if (!this.aiSettings.enabled || !this.aiSettings.apiKey) {
+            this.showAISettings();
+            return;
+        }
+        
+        const field = document.getElementById(fieldId);
+        const currentValue = field.value;
+        
+        let prompt = '';
+        switch (promptType) {
+            case 'creative-title':
+                prompt = `Create a creative, engaging title for: "${currentValue}". Make it catchy and memorable.`;
+                break;
+            case 'descriptive-title':
+                prompt = `Create a clear, descriptive title for: "${currentValue}". Focus on accuracy and clarity.`;
+                break;
+            case 'question-title':
+                prompt = `Turn this into a thought-provoking question: "${currentValue}". Start with What, How, Why, or When.`;
+                break;
+            case 'expand-content':
+                prompt = `Expand this content with more details and examples: "${currentValue}". Add depth and practical insights.`;
+                break;
+            case 'add-examples':
+                prompt = `Add concrete examples and case studies to this content: "${currentValue}". Make it more practical and relatable.`;
+                break;
+            case 'suggest-connections':
+                prompt = `Suggest how this knowledge connects to other fields and concepts: "${currentValue}". Highlight interdisciplinary relationships.`;
+                break;
+        }
+        
+        try {
+            const response = await this.callOpenAI(prompt);
+            if (response) {
+                field.value = response.trim();
+                if (field.tagName === 'TEXTAREA') {
+                    field.style.height = 'auto';
+                    field.style.height = field.scrollHeight + 'px';
+                }
+                this.showMessage('Content enhanced with AI!', 'success');
+            }
+        } catch (error) {
+            console.error('AI generation error:', error);
+            this.showMessage('Failed to enhance content. Please try again.', 'error');
+        }
+    }
+    
+    async callOpenAI(prompt) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.aiSettings.apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a helpful assistant that generates educational content. Be concise, accurate, and engaging.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 500,
+                temperature: 0.7
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`OpenAI API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
     }
     
     addKnowledgeNode() {
@@ -170,7 +429,7 @@ class KnowledgeApp {
     
     updateStats() {
         this.stats.totalNodes = this.nodes.length;
-        this.stats.experiencePoints = this.nodes.length * 10;
+        this.stats.experiencePoints = (this.nodes.length * 10) + (this.stats.quizzesTaken * 25);
         this.stats.level = Math.floor(this.stats.experiencePoints / 100) + 1;
         
         // Update categories count
@@ -214,6 +473,9 @@ class KnowledgeApp {
         nodeDiv.style.top = node.position.y + 'px';
         nodeDiv.style.backgroundColor = category.color + '20';
         nodeDiv.style.borderColor = category.color;
+        nodeDiv.setAttribute('role', 'button');
+        nodeDiv.setAttribute('tabindex', '0');
+        nodeDiv.setAttribute('aria-label', `Knowledge node: ${node.title}`);
         
         nodeDiv.innerHTML = `
             <div class="node-title" style="color: ${category.color}">${node.title}</div>
@@ -221,8 +483,13 @@ class KnowledgeApp {
             ${node.tags.length > 0 ? `<div class="node-tags">${node.tags.slice(0, 2).join(', ')}</div>` : ''}
         `;
         
-        nodeDiv.addEventListener('click', () => {
-            this.openNodeModal(node);
+        const openModal = () => this.openNodeModal(node);
+        nodeDiv.addEventListener('click', openModal);
+        nodeDiv.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openModal();
+            }
         });
         
         return nodeDiv;
@@ -234,8 +501,7 @@ class KnowledgeApp {
         const modalBody = document.getElementById('modal-body');
         const category = this.categories.find(cat => cat.id === node.category);
         
-        // Set modal header border color
-        document.querySelector('.modal-header').style.borderBottomColor = category.color;
+        modal.setAttribute('aria-hidden', 'false');
         
         modalBody.innerHTML = `
             <div class="category-badge" style="background-color: ${category.color}30; color: ${category.color}">
@@ -280,10 +546,13 @@ class KnowledgeApp {
         `;
         
         modal.classList.add('active');
+        document.getElementById('close-modal').focus();
     }
     
     closeModal() {
-        document.getElementById('node-modal').classList.remove('active');
+        const modal = document.getElementById('node-modal');
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
         this.currentNode = null;
     }
     
@@ -298,6 +567,327 @@ class KnowledgeApp {
             this.closeModal();
             this.showMessage('Knowledge node deleted.', 'success');
         }
+    }
+    
+    // Practice Mode Functions
+    startPracticeMode() {
+        if (this.nodes.length < 3) {
+            this.showMessage('You need at least 3 knowledge nodes to start a quiz.', 'error');
+            return;
+        }
+        
+        this.generateQuiz();
+        document.getElementById('practice-setup').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        this.quizStartTime = Date.now();
+        this.startQuizTimer();
+        this.displayCurrentQuestion();
+    }
+    
+    generateQuiz() {
+        const questionCounts = { easy: 5, medium: 10, hard: 15 };
+        const questionCount = questionCounts[this.selectedDifficulty];
+        
+        // Shuffle nodes and select random ones for questions
+        const shuffledNodes = [...this.nodes].sort(() => Math.random() - 0.5);
+        const selectedNodes = shuffledNodes.slice(0, Math.min(questionCount, this.nodes.length));
+        
+        this.currentQuiz = selectedNodes.map(node => this.generateQuestionFromNode(node));
+        this.currentQuestionIndex = 0;
+        this.quizAnswers = new Array(this.currentQuiz.length).fill(null);
+    }
+    
+    generateQuestionFromNode(node) {
+        const questionTypes = ['multiple-choice', 'true-false', 'fill-blank'];
+        const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+        
+        const category = this.categories.find(cat => cat.id === node.category);
+        
+        switch (type) {
+            case 'multiple-choice':
+                return this.generateMultipleChoice(node, category);
+            case 'true-false':
+                return this.generateTrueFalse(node, category);
+            case 'fill-blank':
+                return this.generateFillBlank(node, category);
+            default:
+                return this.generateMultipleChoice(node, category);
+        }
+    }
+    
+    generateMultipleChoice(node, category) {
+        const questions = [
+            `What is the main concept discussed in "${node.title}"?`,
+            `Which category does "${node.title}" belong to?`,
+            `What is a key aspect of ${node.title}?`
+        ];
+        
+        const question = questions[Math.floor(Math.random() * questions.length)];
+        
+        // Generate options based on the question type
+        let correctAnswer, options;
+        
+        if (question.includes('category')) {
+            correctAnswer = category.name;
+            options = [
+                correctAnswer,
+                ...this.categories.filter(cat => cat.id !== node.category)
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3)
+                    .map(cat => cat.name)
+            ];
+        } else {
+            // Generate options from content
+            const words = node.content.split(' ').filter(word => word.length > 4);
+            correctAnswer = node.title;
+            options = [
+                correctAnswer,
+                ...this.nodes.filter(n => n.id !== node.id)
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3)
+                    .map(n => n.title)
+            ];
+        }
+        
+        // Shuffle options
+        options.sort(() => Math.random() - 0.5);
+        
+        return {
+            type: 'multiple-choice',
+            question,
+            options,
+            correctAnswer,
+            node
+        };
+    }
+    
+    generateTrueFalse(node, category) {
+        const statements = [
+            `"${node.title}" belongs to the ${category.name} category.`,
+            `The main topic of this knowledge is ${node.title}.`,
+            `This knowledge was created recently.`
+        ];
+        
+        const statement = statements[Math.floor(Math.random() * statements.length)];
+        const isTrue = Math.random() > 0.3; // 70% chance of true statements
+        
+        return {
+            type: 'true-false',
+            question: statement,
+            options: ['True', 'False'],
+            correctAnswer: isTrue ? 'True' : 'False',
+            node
+        };
+    }
+    
+    generateFillBlank(node, category) {
+        const sentence = `The main concept of _____ is discussed in the ${category.name} category.`;
+        
+        return {
+            type: 'fill-blank',
+            question: sentence,
+            options: [
+                node.title,
+                ...this.nodes.filter(n => n.id !== node.id)
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3)
+                    .map(n => n.title)
+            ].sort(() => Math.random() - 0.5),
+            correctAnswer: node.title,
+            node
+        };
+    }
+    
+    displayCurrentQuestion() {
+        const question = this.currentQuiz[this.currentQuestionIndex];
+        const progressElement = document.getElementById('quiz-progress');
+        const questionElement = document.getElementById('question-text');
+        const optionsElement = document.getElementById('answer-options');
+        
+        progressElement.textContent = `Question ${this.currentQuestionIndex + 1} of ${this.currentQuiz.length}`;
+        questionElement.textContent = question.question;
+        
+        optionsElement.innerHTML = '';
+        question.options.forEach((option, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'answer-option';
+            optionElement.textContent = option;
+            optionElement.setAttribute('role', 'button');
+            optionElement.setAttribute('tabindex', '0');
+            optionElement.setAttribute('aria-label', `Option ${index + 1}: ${option}`);
+            
+            if (this.quizAnswers[this.currentQuestionIndex] === option) {
+                optionElement.classList.add('selected');
+            }
+            
+            const selectOption = () => {
+                document.querySelectorAll('.answer-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                optionElement.classList.add('selected');
+                this.quizAnswers[this.currentQuestionIndex] = option;
+                this.updateQuizNavigation();
+            };
+            
+            optionElement.addEventListener('click', selectOption);
+            optionElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectOption();
+                }
+            });
+            
+            optionsElement.appendChild(optionElement);
+        });
+        
+        this.updateQuizNavigation();
+    }
+    
+    updateQuizNavigation() {
+        const prevBtn = document.getElementById('prev-question');
+        const nextBtn = document.getElementById('next-question');
+        
+        prevBtn.disabled = this.currentQuestionIndex === 0;
+        
+        if (this.currentQuestionIndex === this.currentQuiz.length - 1) {
+            nextBtn.textContent = 'Finish Quiz';
+            nextBtn.disabled = this.quizAnswers[this.currentQuestionIndex] === null;
+        } else {
+            nextBtn.textContent = 'Next';
+            nextBtn.disabled = this.quizAnswers[this.currentQuestionIndex] === null;
+        }
+    }
+    
+    nextQuestion() {
+        if (this.currentQuestionIndex === this.currentQuiz.length - 1) {
+            this.finishQuiz();
+        } else {
+            this.currentQuestionIndex++;
+            this.displayCurrentQuestion();
+        }
+    }
+    
+    prevQuestion() {
+        if (this.currentQuestionIndex > 0) {
+            this.currentQuestionIndex--;
+            this.displayCurrentQuestion();
+        }
+    }
+    
+    finishQuiz() {
+        clearInterval(this.quizTimer);
+        const endTime = Date.now();
+        const timeSpent = Math.floor((endTime - this.quizStartTime) / 1000);
+        
+        // Calculate score
+        let correctAnswers = 0;
+        this.currentQuiz.forEach((question, index) => {
+            if (this.quizAnswers[index] === question.correctAnswer) {
+                correctAnswers++;
+            }
+        });
+        
+        const score = Math.round((correctAnswers / this.currentQuiz.length) * 100);
+        const xpEarned = correctAnswers * 5 + (score >= 80 ? 25 : 0);
+        
+        // Update stats
+        this.stats.quizzesTaken++;
+        this.stats.experiencePoints += xpEarned;
+        this.stats.totalTimeSpent += timeSpent;
+        this.stats.averageScore = this.stats.averageScore === 0 ? 
+            score : Math.round((this.stats.averageScore + score) / 2);
+        
+        this.updateStats();
+        this.saveData();
+        
+        // Show results
+        this.showQuizResults(score, correctAnswers, timeSpent, xpEarned);
+    }
+    
+    showQuizResults(score, correctAnswers, timeSpent, xpEarned) {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('quiz-results').style.display = 'block';
+        
+        document.getElementById('results-score').textContent = `${score}%`;
+        document.getElementById('correct-answers').textContent = correctAnswers;
+        document.getElementById('total-questions').textContent = this.currentQuiz.length;
+        document.getElementById('time-taken').textContent = this.formatTime(timeSpent);
+        document.getElementById('xp-earned').textContent = `+${xpEarned}`;
+        
+        const messages = [
+            { min: 90, message: "Outstanding! You're a knowledge master!" },
+            { min: 80, message: "Excellent work! You're making great progress." },
+            { min: 70, message: "Good job! Keep up the learning momentum." },
+            { min: 60, message: "Not bad! Review your knowledge and try again." },
+            { min: 0, message: "Keep studying! Every attempt makes you stronger." }
+        ];
+        
+        const message = messages.find(m => score >= m.min).message;
+        document.getElementById('results-message').textContent = message;
+    }
+    
+    resetPracticeMode() {
+        document.getElementById('practice-setup').style.display = 'block';
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('quiz-results').style.display = 'none';
+        
+        this.currentQuiz = null;
+        this.currentQuestionIndex = 0;
+        this.quizAnswers = [];
+        this.quizStartTime = null;
+        
+        if (this.quizTimer) {
+            clearInterval(this.quizTimer);
+        }
+    }
+    
+    startQuizTimer() {
+        const timeLimit = { easy: 300, medium: 600, hard: 900 }; // seconds
+        let timeLeft = timeLimit[this.selectedDifficulty];
+        
+        const timerElement = document.getElementById('quiz-timer');
+        
+        this.quizTimer = setInterval(() => {
+            timeLeft--;
+            timerElement.textContent = this.formatTime(timeLeft);
+            
+            if (timeLeft <= 0) {
+                this.finishQuiz();
+            }
+        }, 1000);
+    }
+    
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    
+    // AI Settings Functions
+    showAISettings() {
+        document.getElementById('ai-settings-modal').classList.add('active');
+        document.getElementById('ai-settings-modal').setAttribute('aria-hidden', 'false');
+    }
+    
+    closeAISettings() {
+        document.getElementById('ai-settings-modal').classList.remove('active');
+        document.getElementById('ai-settings-modal').setAttribute('aria-hidden', 'true');
+    }
+    
+    loadAISettings() {
+        document.getElementById('ai-enabled').checked = this.aiSettings.enabled;
+        document.getElementById('api-key').value = this.aiSettings.apiKey;
+        document.getElementById('auto-tags').checked = this.aiSettings.autoTags;
+    }
+    
+    saveAISettings() {
+        this.aiSettings.enabled = document.getElementById('ai-enabled').checked;
+        this.aiSettings.apiKey = document.getElementById('api-key').value.trim();
+        this.aiSettings.autoTags = document.getElementById('auto-tags').checked;
+        
+        localStorage.setItem('mindweb_ai_settings', JSON.stringify(this.aiSettings));
+        this.closeAISettings();
+        this.showMessage('AI settings saved successfully!', 'success');
     }
     
     renderProgress() {
@@ -345,12 +935,26 @@ class KnowledgeApp {
                 <div class="card-header">
                     <div class="card-icon" style="background-color: #f59e0b20">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
+                            <circle cx="12" cy="12" r="10"/>
+                            <polygon points="10,8 16,12 10,16 10,8"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Quizzes Taken</div>
+                </div>
+                <div class="card-value" style="color: #f59e0b">${this.stats.quizzesTaken}</div>
+                <div class="card-subtitle">Average score: ${this.stats.averageScore}%</div>
+            </div>
+            
+            <div class="progress-card" style="border-left-color: #8b5cf6">
+                <div class="card-header">
+                    <div class="card-icon" style="background-color: #8b5cf620">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                     </div>
                     <div class="card-title">Experience</div>
                 </div>
-                <div class="card-value" style="color: #f59e0b">${this.stats.experiencePoints}</div>
+                <div class="card-value" style="color: #8b5cf6">${this.stats.experiencePoints}</div>
                 <div class="card-subtitle">Total XP earned</div>
             </div>
         `;
@@ -422,18 +1026,32 @@ class KnowledgeApp {
                 isUnlocked: this.stats.totalNodes >= 10
             },
             {
+                title: 'Quiz Master',
+                description: 'Completed 5 quizzes',
+                icon: '🏆',
+                color: '#f59e0b',
+                isUnlocked: this.stats.quizzesTaken >= 5
+            },
+            {
                 title: 'Learning Enthusiast',
                 description: 'Reached Level 5',
                 icon: '⭐',
-                color: '#f59e0b',
+                color: '#8b5cf6',
                 isUnlocked: this.stats.level >= 5
+            },
+            {
+                title: 'AI Assistant',
+                description: 'Used AI features to enhance knowledge',
+                icon: '🤖',
+                color: '#ef4444',
+                isUnlocked: this.aiSettings.enabled && this.aiSettings.apiKey
             }
         ];
         
         const achievementItems = achievements.map(achievement => `
-            <div class="achievement-item">
+            <div class="achievement-item ${achievement.isUnlocked ? 'unlocked' : 'locked'}">
                 <div class="achievement-icon" style="background-color: ${achievement.color}20">
-                    <span style="font-size: 24px">${achievement.icon}</span>
+                    <span style="font-size: 24px; ${achievement.isUnlocked ? '' : 'filter: grayscale(100%); opacity: 0.5;'}">${achievement.icon}</span>
                 </div>
                 <div class="achievement-content">
                     <div class="achievement-title">${achievement.title}</div>
@@ -476,8 +1094,8 @@ class KnowledgeApp {
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Connections</div>
+                    <div class="stat-value">${this.stats.quizzesTaken}</div>
+                    <div class="stat-label">Quizzes</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
@@ -489,16 +1107,19 @@ class KnowledgeApp {
         
         menuSections.innerHTML = `
             <div class="menu-section">
-                <h3 class="section-title">Settings</h3>
-                <button class="menu-item">
+                <h3 class="section-title">AI & Features</h3>
+                <button class="menu-item" onclick="app.showAISettings()">
                     <div class="menu-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                     </div>
-                    <div class="menu-text">App Settings</div>
+                    <div class="menu-text">AI Settings</div>
                 </button>
+            </div>
+            
+            <div class="menu-section">
+                <h3 class="section-title">Data Management</h3>
                 <button class="menu-item" onclick="app.exportData()">
                     <div class="menu-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -526,9 +1147,9 @@ class KnowledgeApp {
             
             <div class="app-info">
                 <div class="app-name">MindWeb</div>
-                <div class="app-version">Version 1.0.0</div>
+                <div class="app-version">Version 2.0.0</div>
                 <div class="app-description">
-                    Build your personal web of knowledge by capturing and connecting insights from your learning journey.
+                    AI-powered knowledge management with interactive learning and testing features.
                 </div>
             </div>
         `;
@@ -538,7 +1159,9 @@ class KnowledgeApp {
         const data = {
             nodes: this.nodes,
             stats: this.stats,
-            exportDate: new Date().toISOString()
+            aiSettings: { ...this.aiSettings, apiKey: '' }, // Don't export API key
+            exportDate: new Date().toISOString(),
+            version: '2.0.0'
         };
         
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -555,9 +1178,11 @@ class KnowledgeApp {
     }
     
     clearAllData() {
-        if (confirm('This will permanently delete all your knowledge nodes and progress. This action cannot be undone. Are you sure?')) {
+        if (confirm('This will permanently delete all your knowledge nodes, progress, and settings. This action cannot be undone. Are you sure?')) {
             localStorage.removeItem('mindweb_nodes');
             localStorage.removeItem('mindweb_stats');
+            localStorage.removeItem('mindweb_ai_settings');
+            localStorage.removeItem('mindweb_theme');
             location.reload();
         }
     }
@@ -570,18 +1195,28 @@ class KnowledgeApp {
     showMessage(message, type = 'success') {
         const messageDiv = document.createElement('div');
         messageDiv.className = `success-message`;
-        messageDiv.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20,6 9,17 4,12"/>
-            </svg>
-            ${message}
-        `;
+        messageDiv.style.position = 'fixed';
+        messageDiv.style.top = '20px';
+        messageDiv.style.right = '20px';
+        messageDiv.style.zIndex = '3000';
+        messageDiv.setAttribute('role', 'alert');
+        messageDiv.setAttribute('aria-live', 'polite');
+        
+        const icon = type === 'success' ? 
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>' :
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+        
+        messageDiv.innerHTML = `${icon} ${message}`;
+        
+        if (type === 'error') {
+            messageDiv.style.background = 'linear-gradient(135deg, var(--error-color), #dc2626)';
+        }
         
         document.body.appendChild(messageDiv);
         
         setTimeout(() => {
             messageDiv.remove();
-        }, 3000);
+        }, 4000);
     }
 }
 
@@ -597,9 +1232,9 @@ setTimeout(() => {
             {
                 id: '1',
                 title: 'Machine Learning Fundamentals',
-                content: 'Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.',
+                content: 'Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed. It involves algorithms that can identify patterns in data and make predictions or decisions based on that data.',
                 category: 'technology',
-                tags: ['AI', 'algorithms', 'data science'],
+                tags: ['AI', 'algorithms', 'data science', 'neural networks'],
                 source: 'Introduction to Statistical Learning',
                 createdAt: new Date(Date.now() - 86400000).toISOString(),
                 position: { x: 100, y: 150 }
@@ -607,9 +1242,9 @@ setTimeout(() => {
             {
                 id: '2',
                 title: 'The Scientific Method',
-                content: 'A systematic approach to understanding the natural world through observation, hypothesis formation, experimentation, and analysis.',
+                content: 'A systematic approach to understanding the natural world through observation, hypothesis formation, experimentation, and analysis. It provides a framework for conducting reliable and reproducible research.',
                 category: 'science',
-                tags: ['research', 'methodology', 'empirical'],
+                tags: ['research', 'methodology', 'empirical', 'hypothesis'],
                 source: 'Scientific Method Course',
                 createdAt: new Date(Date.now() - 172800000).toISOString(),
                 position: { x: 300, y: 100 }
@@ -617,12 +1252,32 @@ setTimeout(() => {
             {
                 id: '3',
                 title: 'Stoic Philosophy Principles',
-                content: 'Focus on what you can control, accept what you cannot, and find wisdom in the distinction between the two.',
+                content: 'Focus on what you can control, accept what you cannot, and find wisdom in the distinction between the two. Stoicism teaches emotional resilience and rational thinking in the face of adversity.',
                 category: 'philosophy',
-                tags: ['stoicism', 'wisdom', 'mindfulness'],
+                tags: ['stoicism', 'wisdom', 'mindfulness', 'resilience'],
                 source: 'Meditations by Marcus Aurelius',
                 createdAt: new Date(Date.now() - 259200000).toISOString(),
                 position: { x: 200, y: 300 }
+            },
+            {
+                id: '4',
+                title: 'Quantum Computing Basics',
+                content: 'Quantum computing leverages quantum mechanical phenomena like superposition and entanglement to process information in ways that classical computers cannot. It promises exponential speedups for certain computational problems.',
+                category: 'technology',
+                tags: ['quantum', 'computing', 'superposition', 'qubits'],
+                source: 'Quantum Computing: An Applied Approach',
+                createdAt: new Date(Date.now() - 345600000).toISOString(),
+                position: { x: 400, y: 200 }
+            },
+            {
+                id: '5',
+                title: 'Renaissance Art Movement',
+                content: 'The Renaissance marked a cultural rebirth in Europe, characterized by renewed interest in classical learning, humanism, and artistic innovation. Artists like Leonardo da Vinci and Michelangelo revolutionized art with techniques like perspective and anatomical accuracy.',
+                category: 'arts',
+                tags: ['renaissance', 'art history', 'humanism', 'perspective'],
+                source: 'Art History Textbook',
+                createdAt: new Date(Date.now() - 432000000).toISOString(),
+                position: { x: 150, y: 400 }
             }
         ];
         
