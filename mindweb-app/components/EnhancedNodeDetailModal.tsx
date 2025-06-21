@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { X, Edit3, Save, Tag, Link, Calendar, Image, Palette, Trash2 } from 'lucide-react-native';
+import { X, CreditCard as Edit3, Save, Tag, Link, Calendar, Image, Palette, Trash2 } from 'lucide-react-native';
 import { KnowledgeNode, CATEGORIES } from '@/types/knowledge';
 
 // Conditional import for expo-image-picker (only on native platforms)
