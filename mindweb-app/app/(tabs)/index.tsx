@@ -1,9 +1,9 @@
 import React, { useState, useCallback, memo } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { Search, Filter, Plus } from 'lucide-react-native';
+import { Search, Filter, Plus, Settings } from 'lucide-react-native';
 import { useKnowledgeStore } from '@/hooks/useKnowledgeStore';
-import KnowledgeWeb from '@/components/KnowledgeWeb';
-import NodeDetailModal from '@/components/NodeDetailModal';
+import EnhancedKnowledgeWeb from '@/components/EnhancedKnowledgeWeb';
+import EnhancedNodeDetailModal from '@/components/EnhancedNodeDetailModal';
 import { KnowledgeNode } from '@/types/knowledge';
 import { useRouter } from 'expo-router';
 
@@ -20,7 +20,16 @@ const HeaderStats = memo<{ totalNodes: number; level: number }>(({ totalNodes, l
 ));
 
 export default function HomeScreen() {
-  const { nodes, stats, loading, updateNode, deleteNode } = useKnowledgeStore();
+  const {
+    nodes,
+    stats,
+    loading,
+    updateNode,
+    updateNodePosition,
+    deleteNode,
+    generateAIContent,
+    settings,
+  } = useKnowledgeStore();
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
@@ -39,6 +48,10 @@ export default function HomeScreen() {
     router.push('/add');
   }, [router]);
 
+  const handleNodePositionChange = useCallback((nodeId: string, position: { x: number; y: number }) => {
+    updateNodePosition(nodeId, position);
+  }, [updateNodePosition]);
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -51,29 +64,42 @@ export default function HomeScreen() {
             <Text style={styles.welcomeText}>Welcome back!</Text>
             <HeaderStats totalNodes={stats.totalNodes} level={stats.level} />
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddNode}>
-            <Plus size={24} color="#ffffff" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/profile')}>
+              <Settings size={20} color="#94a3b8" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddNode}>
+              <Plus size={24} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.actionButton}>
             <Search size={20} color="#94a3b8" />
+            <Text style={styles.actionButtonText}>Search</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
             <Filter size={20} color="#94a3b8" />
+            <Text style={styles.actionButtonText}>Filter</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <KnowledgeWeb nodes={nodes} onNodePress={handleNodePress} />
+      <EnhancedKnowledgeWeb
+        nodes={nodes}
+        onNodePress={handleNodePress}
+        onNodePositionChange={handleNodePositionChange}
+      />
 
-      <NodeDetailModal
+      <EnhancedNodeDetailModal
         visible={modalVisible}
         node={selectedNode}
         onClose={handleCloseModal}
         onUpdate={updateNode}
         onDelete={deleteNode}
+        onGenerateAI={generateAIContent}
+        aiEnabled={settings.aiEnabled}
       />
     </SafeAreaView>
   );
@@ -116,6 +142,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#94a3b8',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingsButton: {
+    backgroundColor: '#334155',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addButton: {
     backgroundColor: '#3b82f6',
     width: 48,
@@ -138,10 +177,16 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     backgroundColor: '#334155',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#94a3b8',
   },
 });

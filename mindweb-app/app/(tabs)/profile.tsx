@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,42 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  TextInput,
+  Switch,
 } from 'react-native';
-import { User, Settings, CircleHelp as HelpCircle, Share2, Download, Trash2 } from 'lucide-react-native';
+import {
+  User,
+  Settings,
+  CircleHelp as HelpCircle,
+  Share2,
+  Download,
+  Trash2,
+  Key,
+  Sparkles,
+  Bell,
+  Moon,
+  Save,
+} from 'lucide-react-native';
 import { useKnowledgeStore } from '@/hooks/useKnowledgeStore';
 
 export default function ProfileScreen() {
-  const { stats, nodes } = useKnowledgeStore();
+  const { stats, nodes, settings, updateSettings } = useKnowledgeStore();
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKey, setApiKey] = useState(settings.openaiApiKey || '');
+  const [tempSettings, setTempSettings] = useState(settings);
+
+  const handleSaveSettings = async () => {
+    try {
+      await updateSettings({
+        ...tempSettings,
+        openaiApiKey: apiKey,
+      });
+      Alert.alert('Success', 'Settings saved successfully!');
+      setShowApiKeyInput(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save settings. Please try again.');
+    }
+  };
 
   const handleExportData = () => {
     Alert.alert(
@@ -76,13 +106,107 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>AI Settings</Text>
           
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <View style={styles.settingIcon}>
+                <Sparkles size={20} color="#3b82f6" />
+              </View>
+              <View style={styles.settingText}>
+                <Text style={styles.settingTitle}>Enable AI Features</Text>
+                <Text style={styles.settingDescription}>
+                  Use AI to generate content and suggestions
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={tempSettings.aiEnabled}
+              onValueChange={(value) => setTempSettings({ ...tempSettings, aiEnabled: value })}
+              trackColor={{ false: '#334155', true: '#3b82f6' }}
+              thumbColor={tempSettings.aiEnabled ? '#ffffff' : '#94a3b8'}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setShowApiKeyInput(!showApiKeyInput)}
+          >
+            <View style={styles.menuIcon}>
+              <Key size={20} color="#94a3b8" />
+            </View>
+            <Text style={styles.menuText}>OpenAI API Key</Text>
+            <Text style={styles.menuSubtext}>
+              {settings.openaiApiKey ? 'Configured' : 'Not set'}
+            </Text>
+          </TouchableOpacity>
+
+          {showApiKeyInput && (
+            <View style={styles.apiKeySection}>
+              <TextInput
+                style={styles.apiKeyInput}
+                value={apiKey}
+                onChangeText={setApiKey}
+                placeholder="Enter your OpenAI API key..."
+                placeholderTextColor="#64748b"
+                secureTextEntry
+              />
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveSettings}>
+                <Save size={16} color="#ffffff" />
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>App Settings</Text>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <View style={styles.settingIcon}>
+                <Bell size={20} color="#f59e0b" />
+              </View>
+              <View style={styles.settingText}>
+                <Text style={styles.settingTitle}>Notifications</Text>
+                <Text style={styles.settingDescription}>
+                  Get reminders and updates
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={tempSettings.notifications}
+              onValueChange={(value) => setTempSettings({ ...tempSettings, notifications: value })}
+              trackColor={{ false: '#334155', true: '#f59e0b' }}
+              thumbColor={tempSettings.notifications ? '#ffffff' : '#94a3b8'}
+            />
+          </View>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <View style={styles.settingIcon}>
+                <Moon size={20} color="#8b5cf6" />
+              </View>
+              <View style={styles.settingText}>
+                <Text style={styles.settingTitle}>Dark Mode</Text>
+                <Text style={styles.settingDescription}>
+                  Use dark theme
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={tempSettings.darkMode}
+              onValueChange={(value) => setTempSettings({ ...tempSettings, darkMode: value })}
+              trackColor={{ false: '#334155', true: '#8b5cf6' }}
+              thumbColor={tempSettings.darkMode ? '#ffffff' : '#94a3b8'}
+            />
+          </View>
+
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuIcon}>
               <Settings size={20} color="#94a3b8" />
             </View>
-            <Text style={styles.menuText}>App Settings</Text>
+            <Text style={styles.menuText}>Quiz Settings</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
@@ -129,6 +253,13 @@ export default function ProfileScreen() {
             Build your personal web of knowledge by capturing and connecting insights from your learning journey.
           </Text>
         </View>
+
+        {(JSON.stringify(tempSettings) !== JSON.stringify(settings) || apiKey !== (settings.openaiApiKey || '')) && (
+          <TouchableOpacity style={styles.globalSaveButton} onPress={handleSaveSettings}>
+            <Save size={20} color="#ffffff" />
+            <Text style={styles.globalSaveButtonText}>Save Changes</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,6 +357,43 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     marginBottom: 16,
   },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1e293b',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  settingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#334155',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  settingText: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#e2e8f0',
+    marginBottom: 2,
+  },
+  settingDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#94a3b8',
+  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -248,6 +416,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#e2e8f0',
     flex: 1,
+  },
+  menuSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#94a3b8',
+  },
+  apiKeySection: {
+    backgroundColor: '#334155',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  apiKeyInput: {
+    backgroundColor: '#475569',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#f8fafc',
+    marginBottom: 12,
+  },
+  saveButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  saveButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
   appInfo: {
     alignItems: 'center',
@@ -272,5 +474,28 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  globalSaveButton: {
+    backgroundColor: '#3b82f6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
+    shadowColor: '#3b82f6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  globalSaveButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
 });

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Brain, Plus, User, TrendingUp } from 'lucide-react-native';
+import { Brain, Plus, User, TrendingUp, Gamepad2 } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -37,6 +37,15 @@ export default function TabLayout() {
           title: 'Add Knowledge',
           tabBarIcon: ({ size, color }) => (
             <Plus size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="play"
+        options={{
+          title: 'Play & Test',
+          tabBarIcon: ({ size, color }) => (
+            <Gamepad2 size={size} color={color} />
           ),
         }}
       />
