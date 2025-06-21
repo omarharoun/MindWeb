@@ -13,22 +13,31 @@ This is the standalone web version of MindWeb built with vanilla HTML, CSS, and 
 
 ## Getting Started
 
-### Option 1: Simple File Server
-Open `index.html` directly in your browser, or serve it with any static file server:
-
+### Quick Start (Recommended)
 ```bash
-# Using Python
-python -m http.server 8080
+npm start
+```
 
-# Using Node.js (if you have http-server installed)
-npx http-server
+This will start a local development server at http://localhost:8080
 
-# Using PHP
+### Alternative Methods
+```bash
+# Using Node.js http-server
+npx http-server -p 8080
+
+# Using Node.js serve
+npx serve -s . -l 8080
+
+# Using PHP (if available)
 php -S localhost:8080
 ```
 
-### Option 2: Live Server (Recommended for Development)
-If using VS Code, install the "Live Server" extension and right-click on `index.html` → "Open with Live Server"
+### Development Mode
+```bash
+npm run dev
+```
+
+This will start the server and automatically open your browser.
 
 ## Project Structure
 
@@ -36,7 +45,7 @@ If using VS Code, install the "Live Server" extension and right-click on `index.
 mindweb-web/
 ├── index.html          # Main HTML file
 ├── script.js          # Application logic
-├── styles.css         # Styling (embedded in HTML)
+├── package.json       # Node.js dependencies
 └── README.md          # This file
 ```
 
@@ -98,3 +107,15 @@ Deploy to any static hosting service:
 - **GitHub Pages**: Push to a repository and enable Pages
 - **Firebase Hosting**: Use Firebase CLI
 - **Any web server**: Upload files to public directory
+
+## Troubleshooting
+
+If you encounter issues with Python-based servers, use the Node.js alternatives:
+
+```bash
+# Install http-server globally (optional)
+npm install -g http-server
+
+# Then run
+http-server -p 8080
+```
