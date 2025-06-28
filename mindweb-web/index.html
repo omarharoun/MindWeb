@@ -737,26 +737,122 @@
                     </button>
                 </div>
                 <div class="header-actions">
-                    <button class="action-button">
+                    <button class="action-button" id="search-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
                             <path d="M21 21l-4.35-4.35"/>
                         </svg>
+                        Search
                     </button>
-                    <button class="action-button">
+                    <button class="action-button" id="filter-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
                         </svg>
+                        Filter
                     </button>
+                    <div class="view-mode-toggle">
+                        <button class="view-mode-btn active" id="web-view-btn" data-view="web">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Web
+                        </button>
+                        <button class="view-mode-btn" id="grid-view-btn" data-view="grid">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                            Grid
+                        </button>
+                        <button class="view-mode-btn" id="list-view-btn" data-view="list">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                            List
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="knowledge-web" id="knowledge-web">
                 <div class="empty-state" id="empty-state">
+                    <div class="icon-container">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h5a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 14.5 2h-5Z"/>
+                            <path d="M9 6h6"/>
+                            <path d="M9 10h6"/>
+                            <path d="M9 14h3"/>
+                        </svg>
+                    </div>
                     <h2>Your Knowledge Web Awaits</h2>
                     <p>Start building your personal web of knowledge by adding your first insight!</p>
                 </div>
-                <div class="web-container" id="web-container" style="display: none;">
+                
+                <!-- Web View (Original) -->
+                <div class="web-container" id="web-container" style="display: block;">
+                    <div class="connections-layer" id="connections-container"></div>
                     <div class="nodes-layer" id="nodes-container"></div>
+                </div>
+                
+                <!-- Grid View -->
+                <div class="grid-container" id="grid-container" style="display: none;">
+                    <div class="grid-header">
+                        <div class="grid-controls">
+                            <button class="grid-sort-btn" id="grid-sort-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"/>
+                                    <path d="M7 12h14"/>
+                                    <path d="M11 18h10"/>
+                                </svg>
+                                Sort
+                            </button>
+                            <button class="grid-arrange-btn" id="grid-arrange-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 3h18v18H3z"/>
+                                    <path d="M9 9h6v6H9z"/>
+                                </svg>
+                                Auto Arrange
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid-content" id="grid-content">
+                        <!-- Grid items will be dynamically generated here -->
+                    </div>
+                </div>
+                
+                <!-- List View -->
+                <div class="list-container" id="list-container" style="display: none;">
+                    <div class="list-header">
+                        <div class="list-controls">
+                            <button class="list-sort-btn" id="list-sort-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"/>
+                                    <path d="M7 12h14"/>
+                                    <path d="M11 18h10"/>
+                                </svg>
+                                Sort
+                            </button>
+                            <button class="list-group-btn" id="list-group-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                Group
+                            </button>
+                        </div>
+                    </div>
+                    <div class="list-content" id="list-content">
+                        <!-- List items will be dynamically generated here -->
+                    </div>
                 </div>
             </div>
         </div>

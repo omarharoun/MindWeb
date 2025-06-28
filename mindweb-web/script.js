@@ -25,6 +25,9 @@ class KnowledgeApp {
         
         this.selectedCategory = this.categories[0].id;
         this.currentNode = null;
+        this.currentViewMode = 'web'; // 'web', 'grid', 'list'
+        this.sortOrder = 'date'; // 'date', 'title', 'category'
+        this.groupBy = 'none'; // 'none', 'category', 'date'
         
         this.init();
     }
@@ -33,6 +36,12 @@ class KnowledgeApp {
         this.setupEventListeners();
         this.renderCategories();
         this.updateStats();
+        
+        // Add some test data if no nodes exist
+        if (this.nodes.length === 0) {
+            this.addTestData();
+        }
+        
         this.renderKnowledgeWeb();
         this.renderProgress();
         this.renderProfile();
@@ -73,6 +82,33 @@ class KnowledgeApp {
                 this.closeModal();
             }
         });
+
+        // View mode events
+        document.querySelectorAll('.view-mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const viewMode = e.currentTarget.dataset.view;
+                console.log('View mode button clicked:', viewMode);
+                this.switchViewMode(viewMode);
+            });
+        });
+
+        // Grid view events
+        document.getElementById('grid-sort-btn')?.addEventListener('click', () => {
+            this.toggleSortOptions('grid');
+        });
+
+        document.getElementById('grid-arrange-btn')?.addEventListener('click', () => {
+            this.autoArrangeGrid();
+        });
+
+        // List view events
+        document.getElementById('list-sort-btn')?.addEventListener('click', () => {
+            this.toggleSortOptions('list');
+        });
+
+        document.getElementById('list-group-btn')?.addEventListener('click', () => {
+            this.toggleGroupOptions();
+        });
     }
     
     switchTab(tabName) {
@@ -93,6 +129,51 @@ class KnowledgeApp {
             this.renderProgress();
         } else if (tabName === 'profile') {
             this.renderProfile();
+        }
+    }
+    
+    switchViewMode(viewMode) {
+        console.log('Switching to view mode:', viewMode);
+        this.currentViewMode = viewMode;
+        
+        // Update view mode buttons
+        document.querySelectorAll('.view-mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const activeButton = document.querySelector(`[data-view="${viewMode}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+        
+        // Hide all view containers
+        const webContainer = document.getElementById('web-container');
+        const gridContainer = document.getElementById('grid-container');
+        const listContainer = document.getElementById('list-container');
+        
+        if (webContainer) webContainer.style.display = 'none';
+        if (gridContainer) gridContainer.style.display = 'none';
+        if (listContainer) listContainer.style.display = 'none';
+        
+        // Show selected view container
+        switch (viewMode) {
+            case 'web':
+                if (webContainer) {
+                    webContainer.style.display = 'block';
+                    this.renderWebView();
+                }
+                break;
+            case 'grid':
+                if (gridContainer) {
+                    gridContainer.style.display = 'flex';
+                    this.renderGridView();
+                }
+                break;
+            case 'list':
+                if (listContainer) {
+                    listContainer.style.display = 'flex';
+                    this.renderListView();
+                }
+                break;
         }
     }
     
@@ -185,18 +266,33 @@ class KnowledgeApp {
     }
     
     renderKnowledgeWeb() {
+        console.log('Rendering knowledge web, current view mode:', this.currentViewMode);
         const emptyState = document.getElementById('empty-state');
         const webContainer = document.getElementById('web-container');
-        const nodesContainer = document.getElementById('nodes-container');
+        const gridContainer = document.getElementById('grid-container');
+        const listContainer = document.getElementById('list-container');
         
         if (this.nodes.length === 0) {
-            emptyState.style.display = 'flex';
-            webContainer.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'flex';
+            if (webContainer) webContainer.style.display = 'none';
+            if (gridContainer) gridContainer.style.display = 'none';
+            if (listContainer) listContainer.style.display = 'none';
             return;
         }
         
-        emptyState.style.display = 'none';
-        webContainer.style.display = 'block';
+        if (emptyState) emptyState.style.display = 'none';
+        
+        // Render based on current view mode
+        this.switchViewMode(this.currentViewMode);
+    }
+    
+    renderWebView() {
+        console.log('Rendering web view with', this.nodes.length, 'nodes');
+        const nodesContainer = document.getElementById('nodes-container');
+        if (!nodesContainer) {
+            console.error('Nodes container not found');
+            return;
+        }
         
         nodesContainer.innerHTML = '';
         
@@ -206,10 +302,60 @@ class KnowledgeApp {
         });
     }
     
+    renderGridView() {
+        const gridContent = document.getElementById('grid-content');
+        if (!gridContent) return;
+        
+        gridContent.innerHTML = '';
+        
+        // Sort nodes based on current sort order
+        const sortedNodes = this.getSortedNodes();
+        
+        sortedNodes.forEach(node => {
+            const gridItem = this.createGridItem(node);
+            gridContent.appendChild(gridItem);
+        });
+    }
+    
+    renderListView() {
+        const listContent = document.getElementById('list-content');
+        if (!listContent) return;
+        
+        listContent.innerHTML = '';
+        
+        // Sort nodes based on current sort order
+        const sortedNodes = this.getSortedNodes();
+        
+        if (this.groupBy === 'none') {
+            sortedNodes.forEach(node => {
+                const listItem = this.createListItem(node);
+                listContent.appendChild(listItem);
+            });
+        } else {
+            this.renderGroupedList(sortedNodes);
+        }
+    }
+    
+    getSortedNodes() {
+        const nodes = [...this.nodes];
+        
+        switch (this.sortOrder) {
+            case 'date':
+                return nodes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case 'title':
+                return nodes.sort((a, b) => a.title.localeCompare(b.title));
+            case 'category':
+                return nodes.sort((a, b) => a.category.localeCompare(b.category));
+            default:
+                return nodes;
+        }
+    }
+    
     createNodeElement(node) {
         const category = this.categories.find(cat => cat.id === node.category);
         const nodeDiv = document.createElement('div');
         nodeDiv.className = 'knowledge-node';
+        nodeDiv.dataset.nodeId = node.id;
         nodeDiv.style.left = node.position.x + 'px';
         nodeDiv.style.top = node.position.y + 'px';
         nodeDiv.style.backgroundColor = category.color + '20';
@@ -226,6 +372,88 @@ class KnowledgeApp {
         });
         
         return nodeDiv;
+    }
+    
+    createGridItem(node) {
+        const category = this.categories.find(cat => cat.id === node.category);
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        gridItem.dataset.nodeId = node.id;
+        gridItem.style.setProperty('--node-color', category.color);
+        
+        const date = new Date(node.createdAt);
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+        });
+        
+        gridItem.innerHTML = `
+            <div class="grid-item-header">
+                <div class="grid-item-category">${category.name}</div>
+            </div>
+            <div class="grid-item-title">${node.title}</div>
+            <div class="grid-item-content">${this.truncateText(node.content, 120)}</div>
+            <div class="grid-item-footer">
+                <div class="grid-item-tags">
+                    ${node.tags.slice(0, 3).map(tag => `<span class="grid-item-tag">${tag}</span>`).join('')}
+                </div>
+                <div class="grid-item-date">${formattedDate}</div>
+            </div>
+        `;
+        
+        gridItem.addEventListener('click', () => {
+            this.openNodeModal(node);
+        });
+        
+        return gridItem;
+    }
+    
+    createListItem(node) {
+        const category = this.categories.find(cat => cat.id === node.category);
+        const listItem = document.createElement('div');
+        listItem.className = 'list-item';
+        listItem.dataset.nodeId = node.id;
+        listItem.style.setProperty('--node-color', category.color);
+        
+        const date = new Date(node.createdAt);
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+        });
+        
+        listItem.innerHTML = `
+            <div class="list-item-icon" style="background: ${category.color}20">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${category.color}" stroke-width="2">
+                    <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h5a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 14.5 2h-5Z"/>
+                    <path d="M9 6h6"/>
+                    <path d="M9 10h6"/>
+                    <path d="M9 14h3"/>
+                </svg>
+            </div>
+            <div class="list-item-content">
+                <div class="list-item-title">${node.title}</div>
+                <div class="list-item-meta">
+                    <span class="list-item-category">${category.name}</span>
+                    <div class="list-item-tags">
+                        ${node.tags.slice(0, 2).map(tag => `<span class="list-item-tag">${tag}</span>`).join('')}
+                    </div>
+                    <span class="list-item-date">${formattedDate}</span>
+                </div>
+            </div>
+        `;
+        
+        listItem.addEventListener('click', () => {
+            this.openNodeModal(node);
+        });
+        
+        return listItem;
+    }
+    
+    truncateText(text, maxLength) {
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     }
     
     openNodeModal(node) {
@@ -582,6 +810,317 @@ class KnowledgeApp {
         setTimeout(() => {
             messageDiv.remove();
         }, 3000);
+    }
+
+    renderGroupedList(nodes) {
+        const listContent = document.getElementById('list-content');
+        if (!listContent) return;
+        
+        if (this.groupBy === 'category') {
+            const grouped = this.groupNodesByCategory(nodes);
+            Object.keys(grouped).forEach(category => {
+                const groupHeader = this.createGroupHeader(category, grouped[category].length);
+                listContent.appendChild(groupHeader);
+                
+                grouped[category].forEach(node => {
+                    const listItem = this.createListItem(node);
+                    listContent.appendChild(listItem);
+                });
+            });
+        } else if (this.groupBy === 'date') {
+            const grouped = this.groupNodesByDate(nodes);
+            Object.keys(grouped).forEach(dateGroup => {
+                const groupHeader = this.createGroupHeader(dateGroup, grouped[dateGroup].length);
+                listContent.appendChild(groupHeader);
+                
+                grouped[dateGroup].forEach(node => {
+                    const listItem = this.createListItem(node);
+                    listContent.appendChild(listItem);
+                });
+            });
+        }
+    }
+
+    groupNodesByCategory(nodes) {
+        const grouped = {};
+        nodes.forEach(node => {
+            const category = this.categories.find(cat => cat.id === node.category)?.name || 'Other';
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(node);
+        });
+        return grouped;
+    }
+
+    groupNodesByDate(nodes) {
+        const grouped = {};
+        nodes.forEach(node => {
+            const date = new Date(node.createdAt);
+            const today = new Date();
+            const diffTime = Math.abs(today - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let dateGroup;
+            if (diffDays === 1) {
+                dateGroup = 'Today';
+            } else if (diffDays <= 7) {
+                dateGroup = 'This Week';
+            } else if (diffDays <= 30) {
+                dateGroup = 'This Month';
+            } else if (diffDays <= 90) {
+                dateGroup = 'Last 3 Months';
+            } else {
+                dateGroup = 'Older';
+            }
+            
+            if (!grouped[dateGroup]) {
+                grouped[dateGroup] = [];
+            }
+            grouped[dateGroup].push(node);
+        });
+        return grouped;
+    }
+
+    createGroupHeader(title, count) {
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'group-header';
+        groupHeader.style.cssText = `
+            padding: 12px 20px;
+            background: rgba(15, 23, 42, 0.5);
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        `;
+        groupHeader.textContent = `${title} (${count})`;
+        return groupHeader;
+    }
+
+    autoArrangeGrid() {
+        const gridContent = document.getElementById('grid-content');
+        if (!gridContent) return;
+        
+        const items = Array.from(gridContent.children);
+        
+        if (items.length === 0) return;
+        
+        // Add arranging class for smooth animation
+        items.forEach(item => item.classList.add('arranging'));
+        
+        // Calculate optimal arrangement
+        const containerWidth = gridContent.clientWidth;
+        const itemWidth = 280; // minmax width from CSS
+        const gap = 20;
+        const columns = Math.floor(containerWidth / (itemWidth + gap));
+        
+        // Sort items by importance (date, then category)
+        const sortedItems = items.sort((a, b) => {
+            const nodeA = this.nodes.find(n => n.id === a.dataset.nodeId);
+            const nodeB = this.nodes.find(n => n.id === b.dataset.nodeId);
+            return new Date(nodeB.createdAt) - new Date(nodeA.createdAt);
+        });
+        
+        // Arrange items in a grid pattern
+        sortedItems.forEach((item, index) => {
+            const row = Math.floor(index / columns);
+            const col = index % columns;
+            
+            const x = col * (itemWidth + gap);
+            const y = row * (item.offsetHeight + gap);
+            
+            item.style.transform = `translate(${x}px, ${y}px)`;
+        });
+        
+        // Remove arranging class after animation
+        setTimeout(() => {
+            items.forEach(item => item.classList.remove('arranging'));
+        }, 600);
+        
+        this.showMessage('Grid auto-arranged successfully!', 'success');
+    }
+
+    toggleSortOptions(viewType) {
+        const sortOptions = [
+            { value: 'date', label: 'Date Created' },
+            { value: 'title', label: 'Title' },
+            { value: 'category', label: 'Category' }
+        ];
+        
+        const currentSort = this.sortOrder;
+        
+        // Create sort dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'sort-dropdown';
+        dropdown.style.cssText = `
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 8px;
+            padding: 8px 0;
+            z-index: 1000;
+            min-width: 150px;
+            backdrop-filter: blur(20px);
+        `;
+        
+        sortOptions.forEach(option => {
+            const item = document.createElement('div');
+            item.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                color: ${option.value === currentSort ? '#3b82f6' : '#cbd5e1'};
+                font-size: 14px;
+                transition: all 0.2s ease;
+            `;
+            item.textContent = option.label;
+            
+            item.addEventListener('click', () => {
+                this.sortOrder = option.value;
+                this.renderKnowledgeWeb();
+                dropdown.remove();
+            });
+            
+            item.addEventListener('mouseenter', () => {
+                item.style.background = 'rgba(71, 85, 105, 0.3)';
+            });
+            
+            item.addEventListener('mouseleave', () => {
+                item.style.background = 'transparent';
+            });
+            
+            dropdown.appendChild(item);
+        });
+        
+        // Position dropdown
+        const button = document.getElementById(`${viewType}-sort-btn`);
+        if (button) {
+            button.parentNode.style.position = 'relative';
+            button.parentNode.appendChild(dropdown);
+            
+            // Close dropdown when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                        dropdown.remove();
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }, 0);
+        }
+    }
+
+    toggleGroupOptions() {
+        const groupOptions = [
+            { value: 'none', label: 'No Grouping' },
+            { value: 'category', label: 'Group by Category' },
+            { value: 'date', label: 'Group by Date' }
+        ];
+        
+        const currentGroup = this.groupBy;
+        
+        // Create group dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'group-dropdown';
+        dropdown.style.cssText = `
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 8px;
+            padding: 8px 0;
+            z-index: 1000;
+            min-width: 150px;
+            backdrop-filter: blur(20px);
+        `;
+        
+        groupOptions.forEach(option => {
+            const item = document.createElement('div');
+            item.style.cssText = `
+                padding: 8px 16px;
+                cursor: pointer;
+                color: ${option.value === currentGroup ? '#3b82f6' : '#cbd5e1'};
+                font-size: 14px;
+                transition: all 0.2s ease;
+            `;
+            item.textContent = option.label;
+            
+            item.addEventListener('click', () => {
+                this.groupBy = option.value;
+                this.renderKnowledgeWeb();
+                dropdown.remove();
+            });
+            
+            item.addEventListener('mouseenter', () => {
+                item.style.background = 'rgba(71, 85, 105, 0.3)';
+            });
+            
+            item.addEventListener('mouseleave', () => {
+                item.style.background = 'transparent';
+            });
+            
+            dropdown.appendChild(item);
+        });
+        
+        // Position dropdown
+        const button = document.getElementById('list-group-btn');
+        if (button) {
+            button.parentNode.style.position = 'relative';
+            button.parentNode.appendChild(dropdown);
+            
+            // Close dropdown when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                        dropdown.remove();
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }, 0);
+        }
+    }
+
+    addTestData() {
+        const testNodes = [
+            {
+                id: '1',
+                title: 'Machine Learning Basics',
+                content: 'Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions without being explicitly programmed.',
+                category: 'technology',
+                tags: ['AI', 'ML', 'algorithms'],
+                source: 'Coursera Course',
+                createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                position: { x: 100, y: 100 }
+            },
+            {
+                id: '2',
+                title: 'Quantum Physics Principles',
+                content: 'Quantum physics describes the behavior of matter and energy at the atomic and subatomic level.',
+                category: 'science',
+                tags: ['physics', 'quantum', 'atoms'],
+                source: 'Physics Textbook',
+                createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+                position: { x: 300, y: 150 }
+            },
+            {
+                id: '3',
+                title: 'Ancient Greek Philosophy',
+                content: 'The philosophical traditions of ancient Greece laid the foundation for Western philosophy.',
+                category: 'philosophy',
+                tags: ['Greece', 'Socrates', 'Plato'],
+                source: 'History Book',
+                createdAt: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+                position: { x: 200, y: 300 }
+            }
+        ];
+        
+        this.nodes = testNodes;
+        this.saveData();
+        console.log('Added test data:', testNodes.length, 'nodes');
     }
 }
 
